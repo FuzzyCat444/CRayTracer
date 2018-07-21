@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<CodeBlocks_project_file>
+	<FileVersion major="1" minor="6" />
+	<Project>
+		<Option title="RayTracer" />
+		<Option pch_mode="2" />
+		<Option compiler="gcc" />
+		<Build>
+			<Target title="Debug">
+				<Option output="bin/Debug/RayTracer" prefix_auto="1" extension_auto="1" />
+				<Option object_output="obj/Debug/" />
+				<Option type="1" />
+				<Option compiler="gcc" />
+				<Compiler>
+					<Add option="-g" />
+				</Compiler>
+			</Target>
+			<Target title="Release">
+				<Option output="bin/Release/RayTracer" prefix_auto="1" extension_auto="1" />
+				<Option object_output="obj/Release/" />
+				<Option type="1" />
+				<Option compiler="gcc" />
+				<Compiler>
+					<Add option="-O2" />
+				</Compiler>
+				<Linker>
+					<Add option="-s" />
+					<Add library="C:/Libraries/GLFW3.2.1/lib/libglfw3.a" />
+					<Add library="C:/Libraries/GLFW3.2.1/lib/libglfw3dll.a" />
+					<Add library="C:/Program Files/mingw-w64/x86_64-8.1.0-win32-seh-rt_v6-rev0/mingw64/x86_64-w64-mingw32/lib/libgdi32.a" />
+					<Add library="C:/Program Files/mingw-w64/x86_64-8.1.0-win32-seh-rt_v6-rev0/mingw64/x86_64-w64-mingw32/lib/libopengl32.a" />
+					<Add directory="C:/Libraries/GLFW3.2.1/include" />
+					<Add directory="C:/Libraries/GLAD/include" />
+				</Linker>
+			</Target>
+		</Build>
+		<Compiler>
+			<Add option="-Wall" />
+		</Compiler>
+		<Unit filename="Camera.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="Camera.h" />
+		<Unit filename="Framebuffer.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="Framebuffer.h" />
+		<Unit filename="Mat4.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="Mat4.h" />
+		<Unit filename="Material.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="Material.h" />
+		<Unit filename="MathFunctions.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="MathFunctions.h" />
+		<Unit filename="RayTracingEngine.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="RayTracingEngine.h" />
+		<Unit filename="Scene.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="Scene.h" />
+		<Unit filename="Vec3.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="Vec3.h" />
+		<Unit filename="glad.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="main.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Extensions>
+			<code_completion />
+			<envvars />
+			<debugger />
+		</Extensions>
+	</Project>
+</CodeBlocks_project_file>

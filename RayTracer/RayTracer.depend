@@ -1,0 +1,84 @@
+# depslib dependency file v1.0
+1530643978 source:s:\dropbox\dropbox\raytracerproject\raytracer\main.c
+	<stdio.h>
+	<stdlib.h>
+	<time.h>
+	<math.h>
+	<glad/glad.h>
+	<GLFW/glfw3.h>
+	"RayTracingEngine.h"
+	"Mat4.h"
+	"Vec3.h"
+	"MathFunctions.h"
+
+1530570279 s:\dropbox\dropbox\raytracerproject\raytracer\raytracingengine.h
+	"Framebuffer.h"
+	"Scene.h"
+	"Camera.h"
+
+1530570279 source:s:\dropbox\dropbox\raytracerproject\raytracer\raytracingengine.c
+	"RayTracingEngine.h"
+	<stdlib.h>
+	<math.h>
+
+1529720568 source:s:\dropbox\dropbox\raytracerproject\raytracer\framebuffer.c
+	"Framebuffer.h"
+	<stdlib.h>
+
+1529720497 s:\dropbox\dropbox\raytracerproject\raytracer\framebuffer.h
+	<stdint.h>
+
+1529492800 source:s:\dropbox\dropbox\raytracerproject\raytracer\glad.c
+	<stdio.h>
+	<stdlib.h>
+	<string.h>
+	<glad/glad.h>
+	<windows.h>
+	<winapifamily.h>
+	<dlfcn.h>
+
+1530571517 source:s:\dropbox\dropbox\raytracerproject\raytracer\camera.c
+	"Camera.h"
+	<stdlib.h>
+	<math.h>
+	"Vec3.h"
+	"Mat4.h"
+
+1529733651 source:s:\dropbox\dropbox\raytracerproject\raytracer\mat4.c
+	"Mat4.h"
+	<math.h>
+	<stdio.h>
+
+1529636005 s:\dropbox\dropbox\raytracerproject\raytracer\mat4.h
+	"Vec3.h"
+
+1529727993 s:\dropbox\dropbox\raytracerproject\raytracer\vec3.h
+
+1529727993 source:s:\dropbox\dropbox\raytracerproject\raytracer\vec3.c
+	"Vec3.h"
+	<math.h>
+
+1530644086 source:s:\dropbox\dropbox\raytracerproject\raytracer\scene.c
+	"Scene.h"
+	<stdlib.h>
+	<math.h>
+	"Mat4.h"
+
+1529641456 source:s:\dropbox\dropbox\raytracerproject\raytracer\material.c
+
+1530474085 s:\dropbox\dropbox\raytracerproject\raytracer\scene.h
+	"Vec3.h"
+	"Material.h"
+
+1529728429 s:\dropbox\dropbox\raytracerproject\raytracer\material.h
+	"Vec3.h"
+
+1530570010 s:\dropbox\dropbox\raytracerproject\raytracer\camera.h
+	"Vec3.h"
+
+1530587640 source:s:\dropbox\dropbox\raytracerproject\raytracer\mathfunctions.c
+	"MathFunctions.h"
+	<stdlib.h>
+
+1530587640 s:\dropbox\dropbox\raytracerproject\raytracer\mathfunctions.h
+
