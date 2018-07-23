@@ -5,7 +5,11 @@
 
 typedef struct Material
 {
-    Vec3 color;
+    Vec3 diffuse;
+    Vec3 specular;
+    int hasSpecular;
 } Material;
+
+Material Material_create(Vec3 diffColor, Vec3 specColor, float specRatio);
 
 #endif // MATERIAL_H_INCLUDED

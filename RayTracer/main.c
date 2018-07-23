@@ -29,8 +29,8 @@ int main(int argc, char **argv)
         fatalError("Failed to initialize GLFW.");
     }
 
-    const int width = 960;
-    const int height = 720;
+    const int width = 1152;
+    const int height = 864;
 
     glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
     GLFWwindow *window = glfwCreateWindow(width, height, "Ray Tracing Engine", NULL, NULL);
@@ -92,7 +92,7 @@ int main(int argc, char **argv)
                                 "}");
     GLint texUniform = glGetUniformLocation(shader, "tex");
 
-    RayTracingEngine *engine = RayTracingEngine_create(width, height, 7, 70.0f);
+    RayTracingEngine *engine = RayTracingEngine_create(width, height, 5, 70.0f);
     if (!engine)
     {
         fatalError("Failed to create ray tracing engine.");
@@ -100,35 +100,19 @@ int main(int argc, char **argv)
     glfwSetWindowUserPointer(window, engine);
 
     Scene *scene = RayTracingEngine_getScene(engine);
-    Scene_addPlane(scene, (Vec3) {0.0f, -5.0f, 0.0f}, 10.0f, 10.0f, 0.0f, 0.0f, (Material) {.color = (Vec3) {1.0f, 1.0f, 1.0f}});
-    for (int i = 0; i < 20; i++)
-    {
-        Vec3 center;
-        float dist = 1.0f;
-        center.x = randomF(-dist, dist);
-        center.y = randomF(-5.0f, -2.5f);
-        center.z = randomF(-dist, dist);
-        float r = randomF(0.1f, 0.4f);
-        Vec3 col;
-        col.x = randomF(0.2f, 1.0f);
-        col.y = randomF(0.2f, 1.0f);
-        col.z = randomF(0.2f, 1.0f);
-        Scene_addSphere(scene, center, r, (Material) {.color = col});
-    }
-    for (int i = 0; i < 5; i++)
-    {
-        Vec3 center;
-        float dist = 1.5f;
-        center.x = randomF(-dist, dist);
-        center.y = randomF(-5.0f, -1.0f);
-        center.z = randomF(-dist, dist);
-        Vec3 col;
-        col.x = randomF(0.2f, 1.0f);
-        col.y = randomF(0.2f, 1.0f);
-        col.z = randomF(0.2f, 1.0f);
-        float reach = randomF(3.0f, 7.0f);
-        Scene_addPointLight(scene, center, col, reach);
-    }
+    Scene_addPointLight(scene, (Vec3) {0.0f, 5.0f, 0.0f}, (Vec3) {1.0f, 1.0f, 1.0f}, 20.0f);
+    Scene_addPointLight(scene, (Vec3) {0.0f, 0.0f, 0.0f}, (Vec3) {1.0f, 1.0f, 1.0f}, 5.0f);
+    Scene_addPlane(scene, (Vec3) {0.0f, -1.0f, 0.0f}, 10.0f, 10.0f, 0.0f, 0.0f, Material_create((Vec3) {1.0f, 1.0f, 1.0f}, (Vec3) {1.0f, 1.0f, 1.0f}, 0.0f));
+    Scene_addPlane(scene, (Vec3) {-5.0f, 4.0f, 0.0f}, 10.0f, 10.0f, M_PI * 0.5f, M_PI * 0.5f, Material_create((Vec3) {1.0f, 1.0f, 1.0f}, (Vec3) {1.0f, 1.0f, 1.0f}, 0.5f));
+
+    float sd = 1.1f;
+    float spec = 0.2f;
+    Scene_addSphere(scene, (Vec3) {-sd, 0.0f, sd}, 1.0f, Material_create((Vec3) {1.0f, 0.0f, 0.0f}, (Vec3) {1.0f, 1.0f, 1.0f}, spec));
+    Scene_addSphere(scene, (Vec3) {sd, 0.0f, sd}, 1.0f, Material_create((Vec3) {0.0f, 1.0f, 0.0f}, (Vec3) {1.0f, 1.0f, 1.0f}, spec));
+    Scene_addSphere(scene, (Vec3) {-sd, 0.0f, -sd}, 1.0f, Material_create((Vec3) {0.0f, 0.0f, 1.0f}, (Vec3) {1.0f, 1.0f, 1.0f}, spec));
+    Scene_addSphere(scene, (Vec3) {sd, 0.0f, -sd}, 1.0f, Material_create((Vec3) {1.0f, 1.0f, 0.0f}, (Vec3) {1.0f, 1.0f, 1.0f}, spec));
+
+    Scene_addSphere(scene, (Vec3) {-3.1f, 0.0f, 0.0f}, 0.7f, Material_create((Vec3) {1.0f, 1.0f, 1.0f}, (Vec3) {1.0f, 1.0f, 1.0f}, 0.9f));
 
     while (!glfwWindowShouldClose(window))
     {

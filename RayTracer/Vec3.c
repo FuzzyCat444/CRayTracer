@@ -79,3 +79,17 @@ Vec3 Vec3_norm(Vec3 a)
     ret.z /= len;
     return ret;
 }
+
+Vec3 Vec3_normComponents(Vec3 a)
+{
+    float max = a.x;
+    if (a.y > max) max = a.y;
+    if (a.z > max) max = a.z;
+
+    return (Vec3)
+    {
+        a.x / max,
+        a.y / max,
+        a.z / max
+    };
+}

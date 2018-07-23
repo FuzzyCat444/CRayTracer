@@ -28,4 +28,6 @@ float Vec3_lenSq(Vec3 a);
 
 Vec3 Vec3_norm(Vec3 a);
 
+Vec3 Vec3_normComponents(Vec3 a);
+
 #endif // VEC3_H_INCLUDED

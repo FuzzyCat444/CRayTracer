@@ -287,39 +287,74 @@ static void Scene_traceHit(Scene *scene, Vec3 start, Vec3 rayDir, TraceInfo *inf
     }
 }
 
+#define AMBIENT_LIGHT 0.05f
+static Vec3 Scene_diffuse(Scene *scene, TraceInfo *traceInfo)
+{
+    Vec3 color = (Vec3) {AMBIENT_LIGHT, AMBIENT_LIGHT, AMBIENT_LIGHT};
+    for (int i = 0; i < scene->pointLightsPtr; i++)
+    {
+        PointLight *light = &scene->pointLights[i];
+
+        Vec3 toLight = Vec3_sub(light->pos, traceInfo->hitPoint);
+        Vec3 toLightNorm = Vec3_norm(toLight);
+        TraceInfo infoShadow;
+        Scene_traceHit(scene, traceInfo->hitPoint, toLightNorm, &infoShadow);
+        float tL = Vec3_len(toLight);
+
+        if (tL < infoShadow.t)
+        {
+            float brightness = PointLight_distanceBrightness(traceInfo->hitPoint, light) * PointLight_angleBrightness(toLightNorm, traceInfo->normal, light);
+            color = Vec3_add(color, Vec3_mulScalar(light->col, brightness));
+        }
+    }
+    if (traceInfo->t >= FAR_T)
+    {
+        color = (Vec3) {0.0f, 0.0f, 0.0f};
+    }
+    return color;
+}
+
+#define NUM_REFLECTIONS 2
 // Traces a ray through a scene, including reflections, and returns the color 'seen' by the ray
 Vec3 Scene_trace(Scene *scene, Vec3 start, Vec3 rayDir)
 {
-    TraceInfo infoInitial;
-    Scene_traceHit(scene, start, rayDir, &infoInitial);
+    TraceInfo traceInfo;
 
-    Vec3 color = {0.0f};
-    if (infoInitial.t < FAR_T)
+    Vec3 from = start;
+    Vec3 to = rayDir;
+
+    int reflectCount = 0;
+    Vec3 materialInfo[2][NUM_REFLECTIONS + 1];
+    while (1)
     {
-        const float amb = 0.05f;
-        color = (Vec3) {amb, amb, amb};
-        for (int i = 0; i < scene->pointLightsPtr; i++)
-        {
-            PointLight *light = &scene->pointLights[i];
+        Scene_traceHit(scene, from, to, &traceInfo);
+        materialInfo[0][reflectCount] = Vec3_mul(Scene_diffuse(scene, &traceInfo), traceInfo.material.diffuse);
+        materialInfo[1][reflectCount] = traceInfo.material.specular;
 
-            Vec3 toLight = Vec3_sub(light->pos, infoInitial.hitPoint);
-            Vec3 toLightNorm = Vec3_norm(toLight);
-            TraceInfo infoShadow;
-            Scene_traceHit(scene, infoInitial.hitPoint, toLightNorm, &infoShadow);
-            float tL = Vec3_len(toLight);
+        if (!(traceInfo.t < FAR_T && traceInfo.material.hasSpecular && reflectCount < NUM_REFLECTIONS))
+            break;
 
-            if (tL < infoShadow.t)
-            {
-                float brightness = PointLight_distanceBrightness(infoInitial.hitPoint, light) * PointLight_angleBrightness(toLightNorm, infoInitial.normal, light);
-                color = Vec3_add(color, Vec3_mulScalar(light->col, brightness));
-            }
-        }
-        color = Vec3_mul(color, infoInitial.material.color);
+        from = traceInfo.hitPoint;
+        to = Vec3_sub(to, Vec3_mulScalar(traceInfo.normal, 2.0f * Vec3_dot(to, traceInfo.normal)));
+        reflectCount++;
+    }
+
+    Vec3 color = materialInfo[0][reflectCount]; // Normalize?
+    reflectCount--;
+    while (reflectCount >= 0)
+    {
+        Vec3 diff = materialInfo[0][reflectCount];
+        Vec3 spec = materialInfo[1][reflectCount];
+
+        color = Vec3_add(diff, Vec3_mul(spec, color));
+
+        reflectCount--;
     }
 
     if (color.x > 1.0f) color.x = 1.0f;
     if (color.y > 1.0f) color.y = 1.0f;
     if (color.z > 1.0f) color.z = 1.0f;
+
     return color;
 }
 
