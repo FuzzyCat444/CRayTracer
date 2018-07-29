@@ -1,5 +1,5 @@
 # depslib dependency file v1.0
-1532329396 source:s:\dropbox\dropbox\raytracerproject\raytracer\main.c
+1532842839 source:s:\dropbox\dropbox\raytracerproject\raytracer\main.c
 	<stdio.h>
 	<stdlib.h>
 	<time.h>
@@ -10,6 +10,7 @@
 	"Mat4.h"
 	"Vec3.h"
 	"MathFunctions.h"
+	"Images.h"
 
 1530570279 s:\dropbox\dropbox\raytracerproject\raytracer\raytracingengine.h
 	"Framebuffer.h"
@@ -58,16 +59,19 @@
 	"Vec3.h"
 	<math.h>
 
-1532328868 source:s:\dropbox\dropbox\raytracerproject\raytracer\scene.c
+1532842871 source:s:\dropbox\dropbox\raytracerproject\raytracer\scene.c
 	"Scene.h"
 	<stdlib.h>
 	<math.h>
 	"Mat4.h"
+	"MathFunctions.h"
+	"MathFunctions.h"
 
-1532323691 source:s:\dropbox\dropbox\raytracerproject\raytracer\material.c
+1532838084 source:s:\dropbox\dropbox\raytracerproject\raytracer\material.c
 	"Material.h"
 
-1530474085 s:\dropbox\dropbox\raytracerproject\raytracer\scene.h
+1532838835 s:\dropbox\dropbox\raytracerproject\raytracer\scene.h
+	<stdint.h>
 	"Vec3.h"
 	"Material.h"
 
@@ -77,9 +81,15 @@
 1530570010 s:\dropbox\dropbox\raytracerproject\raytracer\camera.h
 	"Vec3.h"
 
-1530587640 source:s:\dropbox\dropbox\raytracerproject\raytracer\mathfunctions.c
+1532751425 source:s:\dropbox\dropbox\raytracerproject\raytracer\mathfunctions.c
 	"MathFunctions.h"
 	<stdlib.h>
 
-1530587640 s:\dropbox\dropbox\raytracerproject\raytracer\mathfunctions.h
+1532751415 s:\dropbox\dropbox\raytracerproject\raytracer\mathfunctions.h
+
+1532841886 source:s:\dropbox\dropbox\raytracerproject\raytracer\images.c
+	"Images.h"
+
+1532837038 s:\dropbox\dropbox\raytracerproject\raytracer\images.h
+	<stdint.h>
 

@@ -11,6 +11,7 @@
 #include "Mat4.h"
 #include "Vec3.h"
 #include "MathFunctions.h"
+#include "Images.h"
 
 void closeCallback(GLFWwindow *window);
 void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods);
@@ -29,8 +30,8 @@ int main(int argc, char **argv)
         fatalError("Failed to initialize GLFW.");
     }
 
-    const int width = 1152;
-    const int height = 864;
+    const int width = 800;
+    const int height = 600;
 
     glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
     GLFWwindow *window = glfwCreateWindow(width, height, "Ray Tracing Engine", NULL, NULL);
@@ -51,6 +52,7 @@ int main(int argc, char **argv)
     {
         fatalError("Failed to load OpenGL (glad).");
     }
+
     glViewport(0, 0, width, height);
     GLuint texture;
     glGenTextures(1, &texture);
@@ -100,19 +102,10 @@ int main(int argc, char **argv)
     glfwSetWindowUserPointer(window, engine);
 
     Scene *scene = RayTracingEngine_getScene(engine);
+    Scene_setSky(scene, Images_snow, Images_snow_width, Images_snow_height, 0, 1);
     Scene_addPointLight(scene, (Vec3) {0.0f, 5.0f, 0.0f}, (Vec3) {1.0f, 1.0f, 1.0f}, 20.0f);
-    Scene_addPointLight(scene, (Vec3) {0.0f, 0.0f, 0.0f}, (Vec3) {1.0f, 1.0f, 1.0f}, 5.0f);
-    Scene_addPlane(scene, (Vec3) {0.0f, -1.0f, 0.0f}, 10.0f, 10.0f, 0.0f, 0.0f, Material_create((Vec3) {1.0f, 1.0f, 1.0f}, (Vec3) {1.0f, 1.0f, 1.0f}, 0.0f));
-    Scene_addPlane(scene, (Vec3) {-5.0f, 4.0f, 0.0f}, 10.0f, 10.0f, M_PI * 0.5f, M_PI * 0.5f, Material_create((Vec3) {1.0f, 1.0f, 1.0f}, (Vec3) {1.0f, 1.0f, 1.0f}, 0.5f));
 
-    float sd = 1.1f;
-    float spec = 0.2f;
-    Scene_addSphere(scene, (Vec3) {-sd, 0.0f, sd}, 1.0f, Material_create((Vec3) {1.0f, 0.0f, 0.0f}, (Vec3) {1.0f, 1.0f, 1.0f}, spec));
-    Scene_addSphere(scene, (Vec3) {sd, 0.0f, sd}, 1.0f, Material_create((Vec3) {0.0f, 1.0f, 0.0f}, (Vec3) {1.0f, 1.0f, 1.0f}, spec));
-    Scene_addSphere(scene, (Vec3) {-sd, 0.0f, -sd}, 1.0f, Material_create((Vec3) {0.0f, 0.0f, 1.0f}, (Vec3) {1.0f, 1.0f, 1.0f}, spec));
-    Scene_addSphere(scene, (Vec3) {sd, 0.0f, -sd}, 1.0f, Material_create((Vec3) {1.0f, 1.0f, 0.0f}, (Vec3) {1.0f, 1.0f, 1.0f}, spec));
-
-    Scene_addSphere(scene, (Vec3) {-3.1f, 0.0f, 0.0f}, 0.7f, Material_create((Vec3) {1.0f, 1.0f, 1.0f}, (Vec3) {1.0f, 1.0f, 1.0f}, 0.9f));
+    Scene_addTorus(scene, (Vec3) {0.0f, 0.0f, 8.0f}, 2.0f, 1.0f, 0.0f, M_PI / 2, Material_create((Vec3) {1.0f, 1.0f, 1.0f}, (Vec3) {1.0f, 1.0f, 1.0f}, 1.0f));
 
     while (!glfwWindowShouldClose(window))
     {
@@ -168,7 +161,7 @@ void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods
     }
 
     RayTracingEngine *eng = glfwGetWindowUserPointer(window);
-    float moveSpeed = 0.25f;
+    float moveSpeed = 0.15f;
     if (key == GLFW_KEY_W)
     {
         RayTracingEngine_moveCameraForward(eng, moveSpeed);

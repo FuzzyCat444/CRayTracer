@@ -1,9 +1,13 @@
 #include "Scene.h"
 
 #include <stdlib.h>
+#define _USE_MATH_DEFINES
 #include <math.h>
+#define _1_PI 1.0/M_PI
+#define _1_2PI 1.0/(M_PI*2)
 
 #include "Mat4.h"
+#include "MathFunctions.h"
 
 typedef struct PointLight
 {
@@ -38,7 +42,8 @@ typedef enum ObjectType
 {
     OBJECT_NULL,
     OBJECT_PLANE,
-    OBJECT_SPHERE
+    OBJECT_SPHERE,
+    OBJECT_TORUS
 } ObjectType;
 
 typedef struct Plane
@@ -48,10 +53,10 @@ typedef struct Plane
     float halfHeight;
     float yaw;
     float pitch;
-    Mat4 rotate;
     Mat4 translate;
-    Mat4 rotateInverse;
     Mat4 translateInverse;
+    Mat4 rotate;
+    Mat4 rotateInverse;
     Material material;
 } Plane;
 
@@ -64,6 +69,20 @@ typedef struct Sphere
     Material material;
 } Sphere;
 
+typedef struct Torus
+{
+    Vec3 center;
+    float radius;
+    float tubeRadius;
+    float yaw;
+    float pitch;
+    Mat4 translate;
+    Mat4 translateInverse;
+    Mat4 rotate;
+    Mat4 rotateInverse;
+    Material material;
+} Torus;
+
 typedef struct TraceInfo
 {
     float t;
@@ -71,6 +90,15 @@ typedef struct TraceInfo
     Vec3 normal;
     Material material;
 } TraceInfo;
+
+typedef struct Sky
+{
+    uint8_t *pixels;
+    int pixelsWidth;
+    int pixelsHeight;
+    int enabled;
+    int reflectionsEnabled;
+} Sky;
 
 struct Scene
 {
@@ -85,6 +113,12 @@ struct Scene
     Sphere *spheres;
     int spheresPtr;
     int spheresSize;
+
+    Torus *tori;
+    int toriPtr;
+    int toriSize;
+
+    Sky sky;
 };
 
 Scene *Scene_create()
@@ -92,25 +126,45 @@ Scene *Scene_create()
     Scene *scene = malloc(sizeof *scene);
     if (scene)
     {
-        scene->pointLightsPtr = 0;
-        scene->pointLightsSize = 1;
-
-        scene->planesPtr = 0;
-        scene->planesSize = 1;
-
-        scene->spheresPtr = 0;
-        scene->spheresSize = 1;
-
         scene->pointLights = malloc(sizeof *scene->pointLights);
         scene->planes = malloc(sizeof *scene->planes);
         scene->spheres = malloc(sizeof *scene->spheres);
-        if (!scene->pointLights || !scene->planes || !scene->spheres)
+        scene->tori = malloc(sizeof *scene->tori);
+        if (!scene->pointLights || !scene->planes || !scene->spheres || !scene->tori)
         {
             Scene_destroy(scene);
             scene = NULL;
         }
+        else
+        {
+            scene->pointLightsPtr = 0;
+            scene->pointLightsSize = 1;
+
+            scene->planesPtr = 0;
+            scene->planesSize = 1;
+
+            scene->spheresPtr = 0;
+            scene->spheresSize = 1;
+
+            scene->toriPtr = 0;
+            scene->toriSize = 1;
+
+            Scene_setSky(scene, NULL, 0, 0, 0, 0);
+        }
     }
     return scene;
+}
+
+void Scene_setSky(Scene *scene, uint8_t *pixels, int width, int height, int skyEnabled, int reflectionsEnabled)
+{
+    scene->sky = (Sky)
+    {
+        .pixels = pixels,
+        .pixelsWidth = width,
+        .pixelsHeight = height,
+        .enabled = skyEnabled,
+        .reflectionsEnabled = reflectionsEnabled
+    };
 }
 
 void Scene_addPointLight(Scene *scene, Vec3 pos, Vec3 col, float dist)
@@ -204,6 +258,73 @@ void Scene_addSphere(Scene *scene, Vec3 center, float radius, Material material)
     }
 }
 
+void Scene_addTorus(Scene *scene, Vec3 center, float radius, float tubeRadius, float yaw, float pitch, Material material)
+{
+    int canAdd = 1;
+    if (scene->toriPtr == scene->toriSize)
+    {
+        int newSize = scene->toriSize * 2;
+        Torus *newArr = realloc(scene->tori, sizeof *newArr * newSize);
+
+        if (newArr)
+        {
+            scene->tori = newArr;
+            scene->toriSize = newSize;
+        }
+        else
+        {
+            canAdd = 0;
+        }
+    }
+
+    if (canAdd)
+    {
+        if (tubeRadius > radius)
+        {
+            tubeRadius = radius;
+        }
+        Torus *torus = &scene->tori[scene->toriPtr++];
+        torus->center = center;
+        torus->radius = radius;
+        torus->tubeRadius = tubeRadius;
+        torus->yaw = yaw;
+        torus->pitch = pitch;
+        torus->translate = Mat4_translate(torus->center);
+        torus->translateInverse = Mat4_inverse(torus->translate);
+        torus->rotate = Mat4_mul(Mat4_rotateY(torus->yaw), Mat4_rotateX(torus->pitch));
+        torus->rotateInverse = Mat4_inverse(torus->rotate);
+        torus->material = material;
+    }
+}
+
+typedef struct TorusConstants
+{
+    float R2_minus_r2;
+    float _4R2;
+    float xs, xd;
+    float ys, yd;
+    float zs, zd;
+} TorusConstants;
+
+static float torusFunction(float t, void *constants)
+{
+    TorusConstants *tc = (TorusConstants*) constants;
+
+    float x = tc->xs + t * tc->xd;
+    float y = tc->ys + t * tc->yd;
+    float z = tc->zs + t * tc->zd;
+    float x2 = x * x;
+    float y2 = y * y;
+    float z2 = z * z;
+
+    float sum_x2_z2 = x2 + z2;
+    float part1 = sum_x2_z2 + y2 + tc->R2_minus_r2;
+    part1 *= part1;
+    float part2 = -tc->_4R2 * sum_x2_z2;
+
+    return part1 + part2;
+}
+
 static const float FAR_T = 1000.0f;
 static const float EPSILON = 0.001f;
 
@@ -213,6 +334,7 @@ static void Scene_traceHit(Scene *scene, Vec3 start, Vec3 rayDir, TraceInfo *inf
     float closestT = FAR_T;
     void *closestObject = NULL;
     ObjectType closestObjectType = OBJECT_NULL;
+    Vec3 localHitPoint;
 
     // Planes
     for (int i = 0; i < scene->planesPtr; i++)
@@ -229,6 +351,7 @@ static void Scene_traceHit(Scene *scene, Vec3 start, Vec3 rayDir, TraceInfo *inf
             closestT = t;
             closestObject = plane;
             closestObjectType = OBJECT_PLANE;
+            localHitPoint = hitPoint;
         }
     }
 
@@ -258,32 +381,90 @@ static void Scene_traceHit(Scene *scene, Vec3 start, Vec3 rayDir, TraceInfo *inf
                 closestT = t1;
                 closestObject = sphere;
                 closestObjectType = OBJECT_SPHERE;
+                localHitPoint = Vec3_add(st, Vec3_mulScalar(dr, closestT));
             }
             if (t2 < closestT && t2 > EPSILON)
             {
                 closestT = t2;
                 closestObject = sphere;
                 closestObjectType = OBJECT_SPHERE;
+                localHitPoint = Vec3_add(st, Vec3_mulScalar(dr, closestT));
             }
+        }
+    }
+
+    // Tori
+    for (int i = 0; i < scene->toriPtr; i++)
+    {
+        Torus *torus = &scene->tori[i];
+
+        Vec3 st = Mat4_mulVec3(Mat4_mul(torus->rotateInverse, torus->translateInverse), start);
+        Vec3 dr = Mat4_mulVec3(torus->rotateInverse, rayDir);
+
+        float R2 = torus->radius * torus->radius;
+        TorusConstants tc =
+        {
+            .R2_minus_r2 = R2 - torus->tubeRadius * torus->tubeRadius,
+            ._4R2 = 4 * R2,
+            .xs = st.x, .xd = dr.x,
+            .ys = st.y, .yd = dr.y,
+            .zs = st.z, .zd = dr.z
+        };
+
+        float dist = Vec3_len(st);
+        float outerRadius = (torus->radius + torus->tubeRadius) * 1.3f;
+        float tMin = dist - outerRadius;
+        tMin = tMin < EPSILON ? EPSILON : tMin;
+        float tMax = dist + outerRadius;
+        float t = -1.0f;
+        MathFunctions_findRootsF(torusFunction, &tc, tMin, tMax, &t, 1, 50, 25);
+
+        if (t < closestT && t > EPSILON)
+        {
+            closestT = t;
+            closestObject = torus;
+            closestObjectType = OBJECT_TORUS;
+            localHitPoint = Vec3_add(st, Vec3_mulScalar(dr, closestT));
         }
     }
 
     info->t = closestT;
     info->hitPoint = Vec3_add(start, Vec3_mulScalar(rayDir, closestT));
 
-    if (closestObjectType == OBJECT_PLANE)
+    switch (closestObjectType)
+    {
+    case OBJECT_PLANE:
     {
         Plane *plane = (Plane*) closestObject;
 
         info->normal = Mat4_mulVec3(plane->rotate, (Vec3) {0.0f, 1.0f, 0.0f});
         info->material = plane->material;
+        break;
     }
-    else if (closestObjectType == OBJECT_SPHERE)
+    case OBJECT_SPHERE:
     {
         Sphere *sphere = (Sphere*) closestObject;
 
-        info->normal = Vec3_mulScalar(Vec3_sub(info->hitPoint, sphere->center), 1.0f / sphere->radius);
+        info->normal = Vec3_mulScalar(localHitPoint, 1.0f / sphere->radius);
         info->material = sphere->material;
+        break;
+    }
+    case OBJECT_TORUS:
+    {
+        Torus *torus = (Torus*) closestObject;
+
+        Vec3 toHitXZ = {localHitPoint.x, 0.0f, localHitPoint.z};
+        float len = Vec3_len(toHitXZ);
+        toHitXZ = Vec3_mulScalar(toHitXZ, 1.0f / len);
+        float xComp = len - torus->radius;
+        float yComp = localHitPoint.y;
+        Vec3 localNormal = Vec3_mulScalar(Vec3_add(Vec3_mulScalar(toHitXZ, xComp), (Vec3) {0.0f, yComp, 0.0f}), 1.0f / torus->tubeRadius);
+
+        info->normal = Mat4_mulVec3(torus->rotate, localNormal);
+        info->material = torus->material;
+    }
+    case OBJECT_NULL:
+        break;
     }
 }
 
@@ -307,14 +488,12 @@ static Vec3 Scene_diffuse(Scene *scene, TraceInfo *traceInfo)
             color = Vec3_add(color, Vec3_mulScalar(light->col, brightness));
         }
     }
-    if (traceInfo->t >= FAR_T)
-    {
-        color = (Vec3) {0.0f, 0.0f, 0.0f};
-    }
     return color;
 }
 
-#define NUM_REFLECTIONS 2
+#include "MathFunctions.h"
+
+#define NUM_REFLECTIONS 5
 // Traces a ray through a scene, including reflections, and returns the color 'seen' by the ray
 Vec3 Scene_trace(Scene *scene, Vec3 start, Vec3 rayDir)
 {
@@ -322,16 +501,35 @@ Vec3 Scene_trace(Scene *scene, Vec3 start, Vec3 rayDir)
 
     Vec3 from = start;
     Vec3 to = rayDir;
-
     int reflectCount = 0;
     Vec3 materialInfo[2][NUM_REFLECTIONS + 1];
     while (1)
     {
         Scene_traceHit(scene, from, to, &traceInfo);
-        materialInfo[0][reflectCount] = Vec3_mul(Scene_diffuse(scene, &traceInfo), traceInfo.material.diffuse);
-        materialInfo[1][reflectCount] = traceInfo.material.specular;
+        if (traceInfo.t >= FAR_T)
+        {
+            if ((reflectCount > 0 && scene->sky.reflectionsEnabled) || (reflectCount == 0 && scene->sky.enabled))
+            {
+                float u = 0.5f + atan2(to.z, to.x) * _1_2PI;
+                float v = 0.5f - asin(to.y) * _1_PI;
+                int x = (int) floor(u * (scene->sky.pixelsWidth - 1) + 0.5f);
+                int y = (int) floor(v * (scene->sky.pixelsHeight - 1) + 0.5f);
+                int loc = (x + y * scene->sky.pixelsWidth) * 3;
+                materialInfo[0][reflectCount] = (Vec3) {scene->sky.pixels[loc] / 255.0f, scene->sky.pixels[loc + 1] / 255.0f, scene->sky.pixels[loc + 2] / 255.0f};
+            }
+            else
+            {
+                materialInfo[0][reflectCount] = (Vec3) {0.0f, 0.0f, 0.0f};
+            }
+            break;
+        }
+        else
+        {
+            materialInfo[0][reflectCount] = Vec3_mul(Scene_diffuse(scene, &traceInfo), traceInfo.material.diffuse);
+            materialInfo[1][reflectCount] = traceInfo.material.specular;
+        }
 
-        if (!(traceInfo.t < FAR_T && traceInfo.material.hasSpecular && reflectCount < NUM_REFLECTIONS))
+        if (!(traceInfo.material.hasSpecular && reflectCount < NUM_REFLECTIONS))
             break;
 
         from = traceInfo.hitPoint;
@@ -363,6 +561,7 @@ void Scene_destroy(Scene *scene)
     free(scene->pointLights);
     free(scene->planes);
     free(scene->spheres);
+    free(scene->tori);
 
     free(scene);
 }

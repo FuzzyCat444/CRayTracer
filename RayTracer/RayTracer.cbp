@@ -45,6 +45,10 @@
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="Framebuffer.h" />
+		<Unit filename="Images.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="Images.h" />
 		<Unit filename="Mat4.c">
 			<Option compilerVar="CC" />
 		</Unit>
