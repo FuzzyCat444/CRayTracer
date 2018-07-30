@@ -1,5 +1,5 @@
 # depslib dependency file v1.0
-1532842839 source:s:\dropbox\dropbox\raytracerproject\raytracer\main.c
+1532924193 source:s:\dropbox\dropbox\raytracerproject\raytracer\main.c
 	<stdio.h>
 	<stdlib.h>
 	<time.h>
@@ -11,6 +11,7 @@
 	"Vec3.h"
 	"MathFunctions.h"
 	"Images.h"
+	"CurvePath.h"
 
 1530570279 s:\dropbox\dropbox\raytracerproject\raytracer\raytracingengine.h
 	"Framebuffer.h"
@@ -59,7 +60,7 @@
 	"Vec3.h"
 	<math.h>
 
-1532842871 source:s:\dropbox\dropbox\raytracerproject\raytracer\scene.c
+1532909234 source:s:\dropbox\dropbox\raytracerproject\raytracer\scene.c
 	"Scene.h"
 	<stdlib.h>
 	<math.h>
@@ -92,4 +93,18 @@
 
 1532837038 s:\dropbox\dropbox\raytracerproject\raytracer\images.h
 	<stdint.h>
+
+1532918764 source:s:\dropbox\dropbox\raytracerproject\raytracer\qcurve.c
+	"QCurve.h"
+
+1532918990 s:\dropbox\dropbox\raytracerproject\raytracer\qcurve.h
+	"Vec3.h"
+
+1532924028 source:s:\dropbox\dropbox\raytracerproject\raytracer\curvepath.c
+	"CurvePath.h"
+	<stdlib.h>
+	<math.h>
+
+1532922076 s:\dropbox\dropbox\raytracerproject\raytracer\curvepath.h
+	"QCurve.h"
 

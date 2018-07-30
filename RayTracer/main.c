@@ -12,6 +12,7 @@
 #include "Vec3.h"
 #include "MathFunctions.h"
 #include "Images.h"
+#include "CurvePath.h"
 
 void closeCallback(GLFWwindow *window);
 void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods);
@@ -94,7 +95,7 @@ int main(int argc, char **argv)
                                 "}");
     GLint texUniform = glGetUniformLocation(shader, "tex");
 
-    RayTracingEngine *engine = RayTracingEngine_create(width, height, 5, 70.0f);
+    RayTracingEngine *engine = RayTracingEngine_create(width, height, 6, 70.0f);
     if (!engine)
     {
         fatalError("Failed to create ray tracing engine.");
@@ -103,9 +104,15 @@ int main(int argc, char **argv)
 
     Scene *scene = RayTracingEngine_getScene(engine);
     Scene_setSky(scene, Images_snow, Images_snow_width, Images_snow_height, 0, 1);
-    Scene_addPointLight(scene, (Vec3) {0.0f, 5.0f, 0.0f}, (Vec3) {1.0f, 1.0f, 1.0f}, 20.0f);
+    Scene_addPointLight(scene, (Vec3) {0.0f, 0.0f, 0.0f}, (Vec3) {1.0f, 1.0f, 1.0f}, 20.0f);
 
     Scene_addTorus(scene, (Vec3) {0.0f, 0.0f, 8.0f}, 2.0f, 1.0f, 0.0f, M_PI / 2, Material_create((Vec3) {1.0f, 1.0f, 1.0f}, (Vec3) {1.0f, 1.0f, 1.0f}, 1.0f));
+
+    CurvePath *path = CurvePath_create((Vec3) {0.0f, 0.0f, 0.0f}, (Vec3) {0.0f, 1.0f, 1.0f});
+    CurvePath_addWaypoint(path, (Vec3) {0.0f, 0.0f, 3.0f});
+    CurvePath_addWaypoint(path, (Vec3) {1.0f, 3.0f, 5.0f});
+    Vec3 prevPt = {0.0f, 0.0f, 0.0f};
+    float t = 0.0f;
 
     while (!glfwWindowShouldClose(window))
     {
@@ -113,6 +120,15 @@ int main(int argc, char **argv)
         glfwPollEvents();
 
         // Updates/Ray Trace Rendering
+        Vec3 interp = CurvePath_interpolate(path, t);
+        t += 0.01f;
+        if (t < 1.0f)
+        {
+            Vec3 mv = Vec3_sub(interp, prevPt);
+            printf("%f\n", mv.y);
+            prevPt = interp;
+            RayTracingEngine_moveCamera(engine, mv, 0.0f, 0.0f);
+        }
         RayTracingEngine_simulate(engine);
 
         // Render buffer tuning
@@ -141,6 +157,8 @@ int main(int argc, char **argv)
     glDeleteVertexArrays(1, &vao);
     glDeleteProgram(shader);
 
+    CurvePath_destroy(path);
+
     RayTracingEngine_destroy(engine);
     glfwDestroyWindow(window);
     glfwTerminate();
@@ -161,7 +179,7 @@ void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods
     }
 
     RayTracingEngine *eng = glfwGetWindowUserPointer(window);
-    float moveSpeed = 0.15f;
+    float moveSpeed = 0.25f;
     if (key == GLFW_KEY_W)
     {
         RayTracingEngine_moveCameraForward(eng, moveSpeed);

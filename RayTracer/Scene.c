@@ -508,7 +508,7 @@ Vec3 Scene_trace(Scene *scene, Vec3 start, Vec3 rayDir)
         Scene_traceHit(scene, from, to, &traceInfo);
         if (traceInfo.t >= FAR_T)
         {
-            if ((reflectCount > 0 && scene->sky.reflectionsEnabled) || (reflectCount == 0 && scene->sky.enabled))
+            if (scene->sky.pixels != NULL && ((reflectCount > 0 && scene->sky.reflectionsEnabled) || (reflectCount == 0 && scene->sky.enabled)))
             {
                 float u = 0.5f + atan2(to.z, to.x) * _1_2PI;
                 float v = 0.5f - asin(to.y) * _1_PI;

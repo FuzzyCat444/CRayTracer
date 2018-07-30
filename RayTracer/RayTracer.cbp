@@ -41,6 +41,10 @@
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="Camera.h" />
+		<Unit filename="CurvePath.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="CurvePath.h" />
 		<Unit filename="Framebuffer.c">
 			<Option compilerVar="CC" />
 		</Unit>
@@ -61,6 +65,10 @@
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="MathFunctions.h" />
+		<Unit filename="QCurve.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="QCurve.h" />
 		<Unit filename="RayTracingEngine.c">
 			<Option compilerVar="CC" />
 		</Unit>
